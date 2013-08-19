@@ -44,6 +44,10 @@
             android:theme="@android:style/Theme.NoTitleBar" >
         </activity>
         <activity
+            android:name="com.example.meeting.Meeting_friends_add"
+            android:theme="@android:style/Theme.NoTitleBar" >
+        </activity>
+        <activity
             android:name="com.example.meeting.Meeting_settings_group"
             android:theme="@android:style/Theme.NoTitleBar" >
         </activity>
@@ -56,5 +60,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" >
+    </uses-permission>
 
 </manifest>

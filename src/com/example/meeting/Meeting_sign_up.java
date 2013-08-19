@@ -24,10 +24,14 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -38,15 +42,7 @@ import android.widget.Toast;
 
 public class Meeting_sign_up extends Activity {
 
-  // §‚æ˜∏πΩX mobile_phone
-  //
-  // ´HΩc email
-  //
-  // ±KΩX password
-  //
-  // ©m¶W name
-
-  EditText ed_mobile_phone;
+  EditText ed_mobile_phone, ed_name;
   Button btn_login;
 
   @Override
@@ -58,17 +54,11 @@ public class Meeting_sign_up extends Activity {
     String fileName = Environment.getExternalStorageDirectory()
         .getAbsolutePath() + File.separator + "phone.txt";
 
-    // §]•i•H•ŒString fileName = "mnt/sdcard/Y.txt";
-
     String res = "";
 
     try {
 
       FileInputStream fin = new FileInputStream(fileName);
-
-      // FileInputStream fin = openFileInput(fileName);
-
-      // •Œ≥o≠”¥N§£¶Ê§F°A•≤∂∑•ŒFileInputStream
 
       int length = fin.available();
 
@@ -87,11 +77,12 @@ public class Meeting_sign_up extends Activity {
     }
 
     if (!res.equals("")) {
-      startActivity(new Intent(Meeting_sign_up.this, Meeting_tab.class));
-      finish();
+      String input[] = res.split(",");
+      new php()
+          .execute(
+              "http://120.119.77.60/~ali/conference-translation-php/service/register.php",
+              json_sign_up(input));
     }
-
-    Log.e("text", res);
 
     btn_login.setOnClickListener(new OnClickListener() {
 
@@ -99,9 +90,10 @@ public class Meeting_sign_up extends Activity {
       public void onClick(View v) {
         // TODO Auto-generated method stub
         // http://120.119.77.60/~ali/Conference-Translation/service/register.php
-        String input[] = { ed_mobile_phone.getText().toString() };
+        String input[] = { ed_mobile_phone.getText().toString(),
+            ed_name.getText().toString() };
 
-        php sign_up = (php) new php()
+        new php()
             .execute(
                 "http://120.119.77.60/~ali/conference-translation-php/service/register.php",
                 json_sign_up(input));
@@ -113,7 +105,7 @@ public class Meeting_sign_up extends Activity {
 
   public void findid() {
     ed_mobile_phone = (EditText) findViewById(R.id.ed_mobile_phone);
-
+    ed_name = (EditText) findViewById(R.id.ed_name);
     btn_login = (Button) findViewById(R.id.btn_login);
   }
 
@@ -122,19 +114,6 @@ public class Meeting_sign_up extends Activity {
     // Inflate the menu; this adds items to the action bar if it is present.
     getMenuInflater().inflate(R.menu.meeting_main, menu);
     return true;
-  }
-
-  public String json_sign_up(String tmp[]) {
-    JSONObject jsonObject = new JSONObject();
-    try {
-
-      jsonObject.put("mobile_phone", sha1(tmp[0]));
-    } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    return jsonObject.toString();
   }
 
   class php extends AsyncTask<String, Void, Void> {
@@ -149,7 +128,8 @@ public class Meeting_sign_up extends Activity {
       // TODO Auto-generated method stub
       super.onPreExecute();
       mProgressDialog = new ProgressDialog(Meeting_sign_up.this);
-      mProgressDialog = ProgressDialog.show(Meeting_sign_up.this, "µ˘•U", "•ø¶b≥B≤z§§...", true, true);
+      mProgressDialog = ProgressDialog.show(Meeting_sign_up.this, "Ë®ªÂÜä",
+          "Ê≠£Âú®ËôïÁêÜ‰∏≠...", true, true);
     }
 
     protected Void doInBackground(String... params) {
@@ -167,7 +147,7 @@ public class Meeting_sign_up extends Activity {
       // TODO Auto-generated method stub
       super.onPostExecute(result);
       mProgressDialog.dismiss();
-      
+
       Log.e("re", re);
       if (re.contains("true")) {
         try {
@@ -175,21 +155,17 @@ public class Meeting_sign_up extends Activity {
               .getExternalStorageDirectory().getAbsolutePath()
               + File.separator
               + "phone.txt", false);
-          BufferedWriter bw = new BufferedWriter(fw); // ±NBufferedWeiterªPFileWrite™´•Û∞µ≥sµ≤
-          bw.write(ed_mobile_phone.getText().toString());
+          BufferedWriter bw = new BufferedWriter(fw); // ÔøΩNBufferedWeiterÔøΩPFileWriteÔøΩÔøΩÔøΩÛ∞µ≥sÔøΩÔøΩ
+          bw.write(ed_mobile_phone.getText().toString() + ","
+              + ed_name.getText().toString());
           bw.close();
         } catch (IOException e) {
           e.printStackTrace();
         }
-        startActivity(new Intent(Meeting_sign_up.this, Meeting_tab.class));
-        finish();
-      } else {
-        Toast
-            .makeText(Meeting_sign_up.this, "Ω–ßA≠´∑s¶AøÈ§J§@¶∏!!!", Toast.LENGTH_SHORT)
-            .show();
-      }
 
-     
+      }
+      startActivity(new Intent(Meeting_sign_up.this, Meeting_tab.class));
+      finish();
     }
 
     public void post() {
@@ -197,17 +173,14 @@ public class Meeting_sign_up extends Activity {
 
         HttpPost httpRequest = new HttpPost(url);
         /*
-         * PostπBß@∂«∞e≈‹º∆•≤∂∑•ŒNameValuePair[]∞}¶C¿x¶s
+         * PostÔøΩBÔøΩ@ÔøΩ«∞eÔøΩ‹º∆•ÔøΩÔøΩÔøΩÔøΩÔøΩNameValuePair[]ÔøΩ}ÔøΩCÔøΩxÔøΩs
          */
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("content", contact));
         httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-        /* ®˙±oHTTP response */
+        /* ÔøΩÔøΩoHTTP response */
         HttpResponse httpResponse = new DefaultHttpClient()
             .execute(httpRequest);
-        /* ≠Y™¨∫AΩX¨∞200 ok */
-        /* ®˙•X¶^¿≥¶r¶Í */
-
         String strResult = EntityUtils.toString(httpResponse.getEntity());
         // Log.e("abc2",new aes().Decrypt(strResult));
 
@@ -238,5 +211,18 @@ public class Meeting_sign_up extends Activity {
       e.printStackTrace();
     }
     return "";
+  }
+
+  public String json_sign_up(String tmp[]) {
+    JSONObject jsonObject = new JSONObject();
+    try {
+      jsonObject.put("name", tmp[1]);
+      jsonObject.put("mobile_phone", sha1(tmp[0]));
+    } catch (JSONException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    return jsonObject.toString();
   }
 }
